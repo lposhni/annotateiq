@@ -16,7 +16,7 @@ type Answer = "1" | "0" | "na";
 
 
 export default function RubricPage() {
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
@@ -39,8 +39,8 @@ export default function RubricPage() {
       setLoading(false);
     }
 
-    loadQuestions();
-  }, []);
+      loadQuestions();
+  }, [supabase]);
 
   const completed = Object.keys(answers).length;
   const progress = questions.length
