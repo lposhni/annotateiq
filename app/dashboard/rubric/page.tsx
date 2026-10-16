@@ -14,9 +14,10 @@ type Question = {
 
 type Answer = "1" | "0" | "na";
 
-const supabase = createClient();
 
 export default function RubricPage() {
+  const supabase = createClient();
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
   const [loading, setLoading] = useState(true);
