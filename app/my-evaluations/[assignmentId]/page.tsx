@@ -55,7 +55,7 @@ export default async function AssignmentPage({
   const { data: evaluation, error: evaluationError } =
     await supabase
       .from("evaluations")
-      .select("id, submitted_at")
+      .select("id, submitted_at, video_accessible")
       .eq("assignment_id", assignmentId)
       .maybeSingle();
 
@@ -87,6 +87,7 @@ export default async function AssignmentPage({
 
   const submitted =
     assignment.status === "completed" ||
+    assignment.status === "unavailable" ||
     evaluation?.submitted_at != null;
 
   return (
@@ -124,11 +125,14 @@ export default async function AssignmentPage({
           </div>
 
           <EvaluationForm
-            questions={questions}
-            assignmentId={assignment.id}
-            initialAnswers={initialAnswers}
-            submitted={submitted}
-          />
+          questions={questions}
+          assignmentId={assignment.id}
+          initialAnswers={initialAnswers}
+          initialVideoAccessible={
+            evaluation?.video_accessible ?? null
+          }
+          submitted={submitted}
+        />
         </div>
       </div>
     </main>

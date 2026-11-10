@@ -98,8 +98,23 @@ export default async function MyEvaluationsPage() {
                           Topic: {video?.search_term ?? "General"}
                         </p>
 
-                      <p className="mt-2 text-sm text-indigo-300">
-                        Status: {assignment.status.replaceAll("_", " ")}
+                      <p
+                        className={`mt-2 text-sm ${
+                          assignment.status === "unavailable"
+                            ? "text-amber-400"
+                            : assignment.status === "completed"
+                              ? "text-emerald-400"
+                              : "text-indigo-300"
+                        }`}
+                      >
+                        Status:{" "}
+                        {assignment.status === "unavailable"
+                          ? "Video Unavailable"
+                          : assignment.status === "completed"
+                            ? "Completed"
+                            : assignment.status === "in_progress"
+                              ? "In Progress"
+                              : "Assigned"}
                       </p>
                     </div>
 
@@ -107,9 +122,12 @@ export default async function MyEvaluationsPage() {
                       href={`/my-evaluations/${assignment.id}`}
                       className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500"
                     >
-                      {assignment.status === "completed"
-                        ? "View Evaluation"
-                        : "Start Evaluation"}
+                      {assignment.status === "completed" ||
+                        assignment.status === "unavailable"
+                          ? "View Evaluation"
+                          : assignment.status === "in_progress"
+                            ? "Continue Evaluation"
+                            : "Start Evaluation"}
                     </Link>
                   </div>
                 </div>
