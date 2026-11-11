@@ -26,11 +26,19 @@ export default async function AssignmentPage({
       .eq("evaluator_id", user.id)
       .single();
 
-  if (assignmentError || !assignment) {
-    console.error("Assignment error:", assignmentError);
-    notFound();
-  }
+if (assignmentError || !assignment) {
+  console.error("Assignment lookup failed:", {
+    assignmentId,
+    loggedInUserId: user.id,
+    expectedTestUserId: "b39a147a-1db7-4cec-94bc-71d8834ca180",
+    errorCode: assignmentError?.code,
+    errorMessage: assignmentError?.message,
+    errorDetails: assignmentError?.details,
+    assignmentFound: Boolean(assignment),
+  });
 
+  notFound();
+}
   const { data: video, error: videoError } = await supabase
     .from("videos")
     .select("id, title, youtube_id")
@@ -63,26 +71,34 @@ export default async function AssignmentPage({
     throw new Error("Unable to load saved evaluation");
   }
 
-  const initialAnswers: Record<number, "1" | "0" | "na"> = {};
+  // Load saved binary answers and optional comments.
+  const initialAnswers: Record<number, "1" | "0" | "NA"> = {};
+  const initialComments: Record<number, string> = {};
 
   if (evaluation) {
     const { data: responses, error: responsesError } =
       await supabase
         .from("evaluation_responses")
-        .select("question_id, answer, is_na")
+        .select("question_id, answer, is_na, comment")
         .eq("evaluation_id", evaluation.id);
 
     if (responsesError) {
-      throw new Error("Unable to load saved answers");
+      throw new Error("Unable to load saved answers and comments");
     }
 
-    for (const response of responses ?? []) {
-      initialAnswers[response.question_id] = response.is_na
-        ? "na"
-        : response.answer === 1
-          ? "1"
-          : "0";
+    
+  for (const response of responses ?? []) {
+    if (response.is_na === true) {
+      initialAnswers[response.question_id] = "NA";
+    } else if (response.answer === 1) {
+      initialAnswers[response.question_id] = "1";
+    } else if (response.answer === 0) {
+      initialAnswers[response.question_id] = "0";
     }
+
+    initialComments[response.question_id] =
+      response.comment ?? "";
+  }
   }
 
   const submitted =
@@ -125,14 +141,15 @@ export default async function AssignmentPage({
           </div>
 
           <EvaluationForm
-          questions={questions}
-          assignmentId={assignment.id}
-          initialAnswers={initialAnswers}
-          initialVideoAccessible={
-            evaluation?.video_accessible ?? null
-          }
-          submitted={submitted}
-        />
+            questions={questions}
+            assignmentId={assignment.id}
+            initialAnswers={initialAnswers}
+            initialComments={initialComments}
+            initialVideoAccessible={
+              evaluation?.video_accessible ?? null
+            }
+            submitted={submitted}
+          />
         </div>
       </div>
     </main>
