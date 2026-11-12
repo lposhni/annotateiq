@@ -15,6 +15,16 @@ type Question = {
 type Answer = "1" | "0" | "NA";
 type VideoAccessible = boolean | null;
 
+type Props = {
+  questions: Question[];
+  assignmentId?: string;
+  assignedTopic?: string | null;
+  initialAnswers?: Record<number, Answer>;
+  initialComments?: Record<number, string>;
+  initialVideoAccessible?: VideoAccessible;
+  submitted?: boolean;
+};
+
 const naGuidance: Record<number, string> = {
   8: "Select N/A if the video contains no relevant numbers.",
 
@@ -41,18 +51,10 @@ const naGuidance: Record<number, string> = {
   31: "Select N/A if the video has no spoken narration. Otherwise, evaluate whether the narration is clear and easy to understand.",
 };
 
-type Props = {
-  questions: Question[];
-  assignmentId?: string;
-  initialAnswers?: Record<number, Answer>;
-  initialComments?: Record<number, string>;
-  initialVideoAccessible?: VideoAccessible;
-  submitted?: boolean;
-};
-
 export default function EvaluationForm({
   questions,
   assignmentId,
+  assignedTopic = null,
   initialAnswers = {},
   initialComments = {},
   initialVideoAccessible = null,
@@ -82,11 +84,11 @@ export default function EvaluationForm({
     useState(false);
 
   const categories = [
-    ...new Set(questions.map(q => q.category)),
+    ...new Set(questions.map((q) => q.category)),
   ];
 
   const completed = questions.filter(
-    q =>
+    (q) =>
       answers[q.id] === "1" ||
       answers[q.id] === "0" ||
       (q.allows_na && answers[q.id] === "NA")
@@ -111,28 +113,27 @@ export default function EvaluationForm({
     setMessage("");
   }
 
+  function selectAnswer(
+    questionId: number,
+    value: Answer
+  ) {
+    if (saving || isSubmitted) return;
 
-function selectAnswer(
-  questionId: number,
-  value: Answer
-) {
-  if (saving || isSubmitted) return;
-
-  setAnswers(prev => ({
-    ...prev,
-    [questionId]: value,
-  }));
-
-  if (value === "NA") {
-    setExpandedComments(prev => ({
+    setAnswers((prev) => ({
       ...prev,
-      [questionId]: true,
+      [questionId]: value,
     }));
-  }
 
-  setHasUnsavedChanges(true);
-  setMessage("");
-}
+    if (value === "NA") {
+      setExpandedComments((prev) => ({
+        ...prev,
+        [questionId]: true,
+      }));
+    }
+
+    setHasUnsavedChanges(true);
+    setMessage("");
+  }
 
   function updateComment(
     questionId: number,
@@ -140,7 +141,7 @@ function selectAnswer(
   ) {
     if (saving || isSubmitted) return;
 
-    setComments(prev => ({
+    setComments((prev) => ({
       ...prev,
       [questionId]: value,
     }));
@@ -150,7 +151,7 @@ function selectAnswer(
   }
 
   function toggleComment(questionId: number) {
-    setExpandedComments(prev => ({
+    setExpandedComments((prev) => ({
       ...prev,
       [questionId]: !(
         prev[questionId] ??
@@ -188,12 +189,12 @@ function selectAnswer(
 
     const responses = questions
       .filter(
-        q =>
+        (q) =>
           answers[q.id] === "1" ||
           answers[q.id] === "0" ||
           (q.allows_na && answers[q.id] === "NA")
       )
-      .map(q => ({
+      .map((q) => ({
         question_id: q.id,
         answer:
           answers[q.id] === "NA"
@@ -254,7 +255,7 @@ function selectAnswer(
 
     const confirmed = window.confirm(
       "Submit this video as unavailable? " +
-      "Any saved draft answers and comments will be discarded."
+        "Any saved draft answers and comments will be discarded."
     );
 
     if (!confirmed) return;
@@ -301,7 +302,6 @@ function selectAnswer(
 
       {/* VIDEO ACCESSIBILITY CHECK */}
       <section className="rounded-xl border border-indigo-500/30 bg-[#182136] p-6">
-
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-400">
           Video Accessibility Check
         </p>
@@ -317,7 +317,6 @@ function selectAnswer(
         </p>
 
         <div className="mt-5 flex flex-wrap gap-3">
-
           <button
             type="button"
             disabled={isSubmitted || saving}
@@ -345,14 +344,12 @@ function selectAnswer(
           >
             No, the video is unavailable
           </button>
-
         </div>
       </section>
 
       {/* UNAVAILABLE VIDEO */}
       {videoAccessible === false && (
         <section className="rounded-xl border border-amber-500/30 bg-[#182136] p-6">
-
           <h2 className="text-lg font-semibold text-amber-300">
             Video Unavailable
           </h2>
@@ -383,7 +380,6 @@ function selectAnswer(
               Preview mode: no changes will be saved.
             </p>
           )}
-
         </section>
       )}
 
@@ -393,7 +389,6 @@ function selectAnswer(
 
           {/* PROGRESS BAR */}
           <div className="sticky top-0 z-10 rounded-xl border border-white/10 bg-[#182136] p-5">
-
             <div className="flex justify-between text-sm">
               <span>Evaluation Progress</span>
               <span>
@@ -415,11 +410,8 @@ function selectAnswer(
                 You have unsaved changes.
               </p>
             )}
-
           </div>
 
-          {/* QUESTION CATEGORIES */}
-          
           {/* EVALUATION GUIDELINES */}
           <section className="rounded-xl border border-indigo-500/30 bg-[#182136] p-5">
             <h2 className="mb-3 text-lg font-semibold text-indigo-300">
@@ -429,7 +421,7 @@ function selectAnswer(
             <div className="space-y-3 text-sm leading-relaxed text-slate-300">
               <p>
                 Please evaluate each criterion based on the
-                video's content. Select Yes (1) or No (0)
+                video&apos;s content. Select Yes (1) or No (0)
                 as appropriate. Where N/A is available,
                 select it only when the criterion does not
                 apply, using the guidance provided below
@@ -465,22 +457,21 @@ function selectAnswer(
           </section>
 
           {/* QUESTION CATEGORIES */}
-          {categories.map(category => (
+          {categories.map((category) => (
             <section
               key={category}
               className="rounded-xl border border-white/10 bg-[#182136] p-5"
             >
-
               <h2 className="mb-6 text-lg font-semibold">
                 {category}
               </h2>
 
               <div className="space-y-6">
-
                 {questions
-                  .filter(q => q.category === category)
-                  .map(q => {
-
+                  .filter(
+                    (q) => q.category === category
+                  )
+                  .map((q) => {
                     const commentOpen =
                       isCommentExpanded(q.id);
 
@@ -506,10 +497,30 @@ function selectAnswer(
                           {q.question_text}
                         </p>
 
+                        {/* ASSIGNED TOPIC FOR QUESTION 2 */}
+                        {q.id === 2 && (
+                          <div className="mb-4 rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-3">
+                            <p className="text-xs font-medium text-indigo-300">
+                              Assigned Health Insurance Topic
+                            </p>
+
+                            <p className="mt-1 text-sm font-semibold text-white">
+                              {assignedTopic?.trim() ||
+                                "Topic not available"}
+                            </p>
+
+                            <p className="mt-2 text-xs text-slate-400">
+                              Evaluate whether this video
+                              teaches about the specific
+                              topic shown above, not just
+                              health insurance in general.
+                            </p>
+                          </div>
+                        )}
+
                         {/* ANSWER OPTIONS */}
                         <div className="flex flex-wrap gap-2">
-
-                          {options.map(value => (
+                          {options.map((value) => (
                             <button
                               key={value}
                               type="button"
@@ -533,12 +544,9 @@ function selectAnswer(
                                 : "N/A"}
                             </button>
                           ))}
-
                         </div>
 
                         {/* N/A GUIDANCE */}
-                        
-                        
                         {q.allows_na && (
                           <div className="mt-3 space-y-2">
                             <p className="text-xs text-slate-400">
@@ -548,12 +556,16 @@ function selectAnswer(
 
                             {answers[q.id] === "NA" && (
                               <p className="text-xs text-amber-300">
-                                Please explain why you selected N/A in Additional
-                                Comments, even if your reason matches the guidance
-                                above. You may provide your own rationale if you
-                                believe the criterion does not apply for another
-                                reason. Explanations are strongly encouraged but
-                                not required.
+                                Please explain why you selected
+                                N/A in Additional Comments,
+                                even if your reason matches
+                                the guidance above. You may
+                                provide your own rationale
+                                if you believe the criterion
+                                does not apply for another
+                                reason. Explanations are
+                                strongly encouraged but not
+                                required.
                               </p>
                             )}
                           </div>
@@ -561,7 +573,6 @@ function selectAnswer(
 
                         {/* EXPANDABLE COMMENTS */}
                         <div className="mt-4">
-
                           <button
                             type="button"
                             onClick={() =>
@@ -571,7 +582,6 @@ function selectAnswer(
                             aria-controls={`comment-panel-${q.id}`}
                             className="flex items-center gap-2 text-sm text-indigo-400 transition hover:text-indigo-300"
                           >
-
                             <span>
                               {commentOpen ? "−" : "+"}
                             </span>
@@ -589,7 +599,6 @@ function selectAnswer(
                                 Added
                               </span>
                             )}
-
                           </button>
 
                           {commentOpen && (
@@ -597,7 +606,6 @@ function selectAnswer(
                               id={`comment-panel-${q.id}`}
                               className="mt-3"
                             >
-
                               <label
                                 htmlFor={`comment-${q.id}`}
                                 className="mb-2 block text-sm text-slate-300"
@@ -612,7 +620,7 @@ function selectAnswer(
                                 value={
                                   comments[q.id] ?? ""
                                 }
-                                onChange={e =>
+                                onChange={(e) =>
                                   updateComment(
                                     q.id,
                                     e.target.value
@@ -623,7 +631,6 @@ function selectAnswer(
                                 }
                                 maxLength={2000}
                                 rows={2}
-                                
                                 placeholder={
                                   answers[q.id] === "NA"
                                     ? "Explain why this criterion does not apply. You may use the guidance above or provide your own rationale..."
@@ -637,25 +644,19 @@ function selectAnswer(
                                   ? "Please provide a rationale for N/A, even if it matches the suggested guidance. Your explanation is strongly encouraged but optional."
                                   : "Comments are optional. You may explain your Yes/No rating or provide supporting examples from the video."}
                               </p>
-
                             </div>
                           )}
-
                         </div>
-
                       </div>
                     );
                   })}
-
               </div>
-
             </section>
           ))}
 
-          {/* PREVIEW MODE */}
+          {/* PREVIEW MODE OR SAVE AND SUBMIT */}
           {!assignmentId ? (
             <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-5 text-sm">
-
               <p className="font-semibold">
                 Preview Mode
               </p>
@@ -664,13 +665,9 @@ function selectAnswer(
                 You can explore the rubric here.
                 Responses are not saved in preview mode.
               </p>
-
             </div>
           ) : (
-
-            /* SAVE AND SUBMIT */
             <div className="rounded-xl border border-white/10 bg-[#182136] p-6">
-
               {isSubmitted ? (
                 <p className="font-semibold text-emerald-400">
                   Evaluation completed.
@@ -678,7 +675,6 @@ function selectAnswer(
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-3">
-
                   <button
                     type="button"
                     disabled={saving}
@@ -702,7 +698,6 @@ function selectAnswer(
                   >
                     Submit Evaluation
                   </button>
-
                 </div>
               )}
 
@@ -722,10 +717,8 @@ function selectAnswer(
                     to enable submission.
                   </p>
                 )}
-
             </div>
           )}
-
         </>
       )}
 
@@ -746,7 +739,6 @@ function selectAnswer(
           {message}
         </p>
       )}
-
     </div>
   );
 }
